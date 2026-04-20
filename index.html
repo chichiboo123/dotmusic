@@ -636,6 +636,7 @@ const UI = {
 const diffCtx = UI.diffCanvas.getContext('2d', { willReadFrequently: true });
 const recCtx = UI.recordCanvas.getContext('2d');
 UI.recordCanvas.width = 1280; UI.recordCanvas.height = 640;
+let currentObjectUrl = null;
 
 function initGrid(aspectRatio) {
     state.rows = Math.floor(state.cols / aspectRatio);
@@ -653,6 +654,24 @@ function initGrid(aspectRatio) {
     drawSourceImage();
 }
 initGrid(1); 
+
+function createDotMap() {
+    const map = Array(state.cols).fill().map(() => Array(state.rows).fill(false));
+    if (state.mode !== 'IMAGE' || state.imageDots.length === 0) return map;
+    state.imageDots.forEach(dot => {
+        const c = Math.floor(dot.x * state.cols);
+        const r = Math.floor(dot.y * state.rows);
+        if (c >= 0 && c < state.cols && r >= 0 && r < state.rows) map[c][r] = true;
+    });
+    return map;
+}
+
+function releaseCurrentObjectUrl() {
+    if (currentObjectUrl) {
+        URL.revokeObjectURL(currentObjectUrl);
+        currentObjectUrl = null;
+    }
+}
 
 function drawSourceImage() {
     if (state.mode !== 'IMAGE') return;
@@ -702,7 +721,7 @@ function processVideoFrame() {
             }
         }
     }
-    UI.prevImgData = new ImageData(new Uint8ClampedArray(data), state.cols, state.rows);
+    UI.prevImgData = currentImgData;
 
     if (activeNotes.length > 0) {
         activeNotes.sort((a,b) => b.diff - a.diff);
@@ -715,13 +734,7 @@ function drawGrid() {
     ctx.fillStyle = state.bgColor; ctx.fillRect(0, 0, UI.gridCanvas.width, UI.gridCanvas.height);
     const decayRate = 0.15 * Math.pow(1.0 - state.decay, 2) + 0.005; 
     
-    const hasDot = Array(state.cols).fill().map(() => Array(state.rows).fill(false));
-    if (state.mode === 'IMAGE') {
-        state.imageDots.forEach(dot => {
-            const c = Math.floor(dot.x * state.cols); const r = Math.floor(dot.y * state.rows);
-            if (c >= 0 && c < state.cols && r >= 0 && r < state.rows) hasDot[c][r] = true;
-        });
-    }
+    const hasDot = createDotMap();
 
     const rgb = hexToRgb(state.dotColor);
     for (let x = 0; x < state.cols; x++) {
@@ -768,11 +781,7 @@ function runSequencer(time) {
         state.currentStep = (state.currentStep + 1) % maxSteps;
         const step = state.currentStep;
         
-        const hasDot = Array(state.cols).fill().map(() => Array(state.rows).fill(false));
-        state.imageDots.forEach(dot => {
-            const c = Math.floor(dot.x * state.cols); const r = Math.floor(dot.y * state.rows);
-            if (c >= 0 && c < state.cols && r >= 0 && r < state.rows) hasDot[c][r] = true;
-        });
+        const hasDot = createDotMap();
 
         for (let x = 0; x < state.cols; x++) {
             for (let y = 0; y < state.rows; y++) {
@@ -817,13 +826,7 @@ function drawGridForCapture(offsetX, offsetY, width, height) {
     tempCtx.fillRect(0, 0, tempGridCanvas.width, tempGridCanvas.height);
     
     const rgb = hexToRgb(state.dotColor);
-    const hasDot = Array(state.cols).fill().map(() => Array(state.rows).fill(false));
-    if (state.mode === 'IMAGE') {
-        state.imageDots.forEach(dot => {
-            const c = Math.floor(dot.x * state.cols); const r = Math.floor(dot.y * state.rows);
-            if (c >= 0 && c < state.cols && r >= 0 && r < state.rows) hasDot[c][r] = true;
-        });
-    }
+    const hasDot = createDotMap();
 
     for (let x = 0; x < state.cols; x++) {
         for (let y = 0; y < state.rows; y++) {
@@ -1069,6 +1072,7 @@ document.getElementById('resetBtn').addEventListener('click', () => {
     document.getElementById('playIcon').innerText = 'play_arrow';
     if(audio.ctx && audio.ctx.state === 'running') audio.ctx.suspend();
     
+    releaseCurrentObjectUrl();
     UI.uploadedImage = null; UI.video.src = ""; document.getElementById('fileInput').value = ""; 
     
     if (state.mode === 'IMAGE') {
@@ -1140,10 +1144,13 @@ dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.style.bord
 fileInput.addEventListener('change', e => { if (e.target.files.length) handleFile(e.target.files[0]); });
 
 function handleFile(file) {
-    const url = URL.createObjectURL(file); document.getElementById('uploadOverlay').classList.remove('active');
+    releaseCurrentObjectUrl();
+    const url = URL.createObjectURL(file);
+    currentObjectUrl = url;
+    document.getElementById('uploadOverlay').classList.remove('active');
     if (state.mode === 'IMAGE' && file.type.startsWith('image/')) {
         const img = new Image(); img.onload = () => { UI.uploadedImage = img; initGrid(img.width / img.height); }; img.src = url;
-    } else if (state.mode === 'VIDEO' && file.type.startsWith('video/')) {
+    } else if (state.mode === 'VIDEO' && (file.type.startsWith('video/') || file.type === 'image/gif')) {
         UI.video.src = url; UI.video.style.display = 'block'; UI.video.style.transform = 'none'; 
         UI.video.onloadedmetadata = () => { initGrid(UI.video.videoWidth / UI.video.videoHeight); };
         UI.video.oncanplay = async () => {
