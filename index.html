@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dot Music</title>
+    
+    <!-- 폰트 및 아이콘 임포트 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap" rel="stylesheet">
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-gov-dynamic-subset.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --grid-line: #e5e7eb;
+        }
+        
+        html {
+            min-height: 100%;
+        }
+        body {
+            margin: 0; padding: 0;
+            width: 100%; min-height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Pretendard GOV', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow-x: hidden;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        /* Top Header Area */
+        .top-bar {
+            width: 100%; max-width: 1000px; display: flex; justify-content: flex-end;
+            padding: 1rem 2rem 0; box-sizing: border-box; gap: 0.5rem;
+        }
+
+        .icon-btn {
+            background: none; border: none; cursor: pointer; color: #4b5563;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0.5rem; border-radius: 50%; transition: background 0.2s, color 0.2s;
+        }
+        .icon-btn:hover { background: #f3f4f6; color: #000; }
+
+        header { padding: 0.5rem 1rem 1rem; text-align: center; }
+        h1 { margin: 0 0 1rem 0; font-size: 2.5rem; font-family: 'Black Han Sans', sans-serif; font-weight: 400; letter-spacing: 1px; }
+
+        .tabs { display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1rem; flex-wrap: wrap;}
+        .tab { 
+            padding: 0.4rem 1rem; cursor: pointer; text-transform: uppercase; 
+            font-size: 0.85rem; font-weight: 700; color: #6b7280;
+            border-radius: 9999px; background: #f3f4f6; transition: all 0.2s;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .tab.active { background: #000; color: #fff; }
+        .tab .material-symbols-outlined { font-size: 1.1rem; }
+        
+        /* Main Layout */
+        main { 
+            display: flex; gap: 1rem; height: 50vh; min-height: 400px; width: 100%;
+            max-width: 1100px; padding: 0 2rem; box-sizing: border-box; justify-content: center;
+        }
+        
+        .panel { 
+            flex: 1; position: relative; background: #f9fafb;
+            border: 1px solid #e5e7eb; border-radius: 8px;
+            display: flex; justify-content: center; align-items: center; padding: 10px;
+        }
+
+        #sourceCanvas, #gridCanvas, #videoSource {
+            max-width: 100%; max-height: 100%; width: auto; height: auto;
+            object-fit: contain; display: block; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        #sourceCanvas { cursor: crosshair; touch-action: none; }
+        #videoSource { display: none; }
+        #gridCanvas { background-color: #fff; }
+        
+        .meta-container {
+            width: 100%; max-width: 1100px; padding: 1.5rem 2rem; box-sizing: border-box;
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; 
+        }
+
+        .badges-container {
+            display: flex; flex-direction: row; gap: 8px; justify-content: center; flex-wrap: wrap; align-items: center;
+        }
+        .badge {
+            background: #f3f4f6; padding: 4px 12px; border-radius: 20px; 
+            display: flex; align-items: center; gap: 5px; color: #111827; 
+            font-size: 0.75rem; font-weight: 700; white-space: nowrap; font-family: 'Pretendard GOV', sans-serif;
+        }
+        .badge .material-symbols-outlined { font-size: 1.1rem; color: #4b5563; }
+
+        .instruction { font-size: 0.8rem; color: #000; font-weight: bold; font-family: 'Pretendard GOV', sans-serif; }
+
+        /* Controls Area */
+        footer { 
+            padding: 2rem; width: 100%; max-width: 1100px; box-sizing: border-box;
+            display: flex; flex-wrap: wrap; gap: 1.2rem; align-items: center; justify-content: center;
+            border-top: 1px solid #f3f4f6; margin-top: auto; 
+            background: #ffffff;
+        }
+
+        .control-group { display: flex; flex-direction: column; gap: 0.3rem; min-width: 90px; flex: 1; max-width: 140px;}
+        .control-group label { font-size: 0.65rem; font-weight: bold; color: #6b7280; text-transform: uppercase;}
+        input[type=range] { -webkit-appearance: none; background: #e5e7eb; height: 4px; border-radius: 2px; outline: none; margin-top: 4px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #000; cursor: pointer; }
+        select { background: #f3f4f6; border: none; padding: 0.4rem; font-family: inherit; font-size: 0.8rem; border-radius: 4px; font-weight: 600; color: #111827;}
+        
+        input[type="color"] {
+            -webkit-appearance: none; border: 1px solid #e5e7eb; width: 100%; height: 26px;
+            border-radius: 4px; cursor: pointer; padding: 0; background: none;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: none; border-radius: 3px; }
+
+        .btn-group { display: flex; gap: 0.5rem; justify-content: center; width: 100%; margin-bottom: 0.5rem; flex-wrap: wrap;}
+        button.action-btn { 
+            background: #f3f4f6; color: #000; border: none; 
+            padding: 0.6rem 1.2rem; cursor: pointer; font-weight: bold; font-size: 0.8rem;
+            border-radius: 4px; transition: all 0.2s; font-family: 'Pretendard GOV', sans-serif;
+            display: flex; align-items: center; gap: 0.4rem; justify-content: center;
+        }
+        button.action-btn:hover { background: #e5e7eb; }
+        button.primary-btn { background: #000; color: #fff; }
+        button.primary-btn:hover { background: #374151; }
+
+        button.record-btn.recording {
+            animation: pulse-red 1.5s infinite;
+            color: #ef4444; background: #fee2e2;
+        }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .credit { width: 100%; text-align: center; padding: 2rem 0; font-size: 0.8rem; }
+        .credit a { color: #6b7280; text-decoration: none; transition: color 0.2s; font-weight: 600;}
+        .credit a:hover { color: #000; }
+
+        /* Overlays & Modals */
+        .overlay {
+            position: absolute; inset: 0; background: rgba(255,255,255,0.95); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 10; display: none; border-radius: 8px;
+        }
+        .overlay.active { display: flex; }
+        .upload-box { border: 2px dashed #9ca3af; padding: 2rem; text-align: center; cursor: pointer; border-radius: 8px;}
+        .upload-box p { margin: 0; }
+        .upload-box p.title { font-weight: bold; margin-bottom: 0.5rem; font-size: 1rem;}
+        .upload-box p.desc { color: #6b7280; font-size: 0.8rem;}
+
+        .modal-bg {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5);
+            display: none; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(4px);
+        }
+        .modal-bg.active { display: flex; }
+        .modal-content {
+            background: #fff; padding: 2rem; border-radius: 12px; max-width: 500px; width: 90%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; max-height: 90vh; overflow-y: auto;
+        }
+        .modal-content h2 { margin-top: 0; display: flex; align-items: center; gap: 8px;}
+        .modal-close { position: absolute; top: 1rem; right: 1rem; cursor: pointer; border: none; background: none; color: #666;}
+        
+        .help-list { margin: 0; padding-left: 1.2rem; color: #444; font-size: 0.9rem; line-height: 1.6;}
+        .help-list li { margin-bottom: 0.5rem; }
+
+        /* Forms in Modal */
+        .preview-img { width: 100%; border-radius: 6px; border: 1px solid #e5e7eb; margin-bottom: 1rem; background: #f9fafb; object-fit: contain; max-height: 250px;}
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.4rem; color: #4b5563;}
+        .form-group input, .form-group textarea {
+            width: 100%; box-sizing: border-box; padding: 0.6rem; border: 1px solid #d1d5db;
+            border-radius: 4px; font-family: inherit; font-size: 0.9rem; outline: none;
+        }
+        .form-group input:focus, .form-group textarea:focus { border-color: #000; }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;}
+
+        @media (max-width: 768px) {
+            main { flex-direction: column; height: auto; max-height: none; padding: 0 1rem; }
+            .panel { min-height: 350px; width: 100%; padding: 5px;}
+            .meta-container { flex-direction: column; text-align: center; gap: 1.5rem; padding: 1rem; margin-bottom: 0.5rem;}
+            .instruction { justify-content: center !important; text-align: center !important; }
+            footer { padding: 1.5rem 1rem; gap: 1rem; }
+            .control-group { min-width: 45%; max-width: none;}
+        }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <button class="icon-btn" id="langToggleBtn" title="Language">
+        <span class="material-symbols-outlined">translate</span>
+        <span style="font-size:0.8rem; font-weight:bold; margin-left:4px;" id="langText">EN</span>
+    </button>
+    <button class="icon-btn" id="noteToggleBtn" title="Composition Note">
+        <span class="material-symbols-outlined">edit_document</span>
+    </button>
+    <button class="icon-btn" id="helpToggleBtn" title="Help">
+        <span class="material-symbols-outlined">help</span>
+    </button>
+</div>
+
+<header>
+    <h1>Dot Music</h1>
+    <div class="tabs" id="modeTabs">
+        <div class="tab active" data-mode="IMAGE">
+            <span class="material-symbols-outlined">image</span>
+            <span data-i18n="tab_image">IMAGE</span>
+        </div>
+        <div class="tab" data-mode="VIDEO">
+            <span class="material-symbols-outlined">movie</span>
+            <span data-i18n="tab_video">VIDEO / GIF</span>
+        </div>
+        <div class="tab" data-mode="WEBCAM">
+            <span class="material-symbols-outlined">videocam</span>
+            <span data-i18n="tab_webcam">WEBCAM</span>
+        </div>
+    </div>
+</header>
+
+<main>
+    <div class="panel">
+        <canvas id="sourceCanvas"></canvas>
+        <video id="videoSource" loop playsinline crossorigin="anonymous" muted></video>
+        
+        <div id="uploadOverlay" class="overlay active">
+            <div class="upload-box" id="dropZone">
+                <span class="material-symbols-outlined" style="font-size:2.5rem; color:#9ca3af; margin-bottom:8px;">upload_file</span>
+                <p class="title" data-i18n="upload_title">Upload Media</p>
+                <p class="desc" id="uploadDesc" data-i18n="upload_desc_img">Click or drag & drop (Image)</p>
+                <input type="file" id="fileInput" style="display: none;" accept="image/*">
+            </div>
+        </div>
+
+        <div id="camOverlay" class="overlay">
+            <span class="material-symbols-outlined" style="font-size:2.5rem; color:#9ca3af; margin-bottom:8px;">photo_camera</span>
+            <p style="font-weight:bold; margin-bottom:1rem;" data-i18n="cam_req">Camera access required</p>
+            <button id="startCamBtn" class="action-btn primary-btn">
+                <span class="material-symbols-outlined">power_settings_new</span>
+                <span data-i18n="cam_allow">Allow & Play</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="panel">
+        <canvas id="gridCanvas"></canvas>
+    </div>
+</main>
+
+<div class="meta-container">
+    <div class="badges-container">
+        <span class="badge">
+            <span class="material-symbols-outlined">tune</span>
+            <span id="metaMode">IMAGE</span>
+        </span>
+        <span class="badge">
+            <span class="material-symbols-outlined">piano</span>
+            <span id="metaSynth">ORAGE</span>
+        </span>
+        <span class="badge">
+            <span class="material-symbols-outlined">music_note</span>
+            <span id="metaGamme">Cm</span>
+        </span>
+    </div>
+    <div class="instruction" id="instructionText" data-i18n="inst_img">
+        이미지를 업로드하고 점을 찍어보세요.
+    </div>
+</div>
+
+<footer>
+    <div class="btn-group">
+        <button id="playBtn" class="action-btn primary-btn">
+            <span class="material-symbols-outlined" id="playIcon">play_arrow</span>
+            <span id="playText" data-i18n="btn_play">PLAY</span>
+        </button>
+        <button id="recordBtn" class="action-btn record-btn">
+            <span class="material-symbols-outlined" id="recIcon">radio_button_checked</span>
+            <span id="recText" data-i18n="btn_record">REC</span>
+        </button>
+        <button id="captureBtn" class="action-btn">
+            <span class="material-symbols-outlined">photo_camera</span>
+            <span id="capText" data-i18n="btn_capture">CAPTURE</span>
+        </button>
+        <button id="resetBtn" class="action-btn">
+            <span class="material-symbols-outlined">refresh</span>
+            <span data-i18n="btn_clear">CLEAR</span>
+        </button>
+    </div>
+    
+    <div class="control-group" id="scanDirGroup">
+        <label data-i18n="lbl_dir">Direction</label>
+        <select id="scanDirSelect">
+            <option value="L2R">→ Left to Right</option>
+            <option value="R2L">← Right to Left</option>
+            <option value="T2B">↓ Top to Bottom</option>
+            <option value="B2T">↑ Bottom to Top</option>
+            <option value="TL2BR">↘ Diagonal</option>
+        </select>
+    </div>
+
+    <div class="control-group">
+        <label data-i18n="lbl_speed">Speed</label>
+        <input type="range" id="speedSlider" min="40" max="240" value="120">
+    </div>
+
+    <div class="control-group" id="thresholdGroup" style="display:none;">
+        <label data-i18n="lbl_sens">Sensitivity</label>
+        <input type="range" id="sensitivitySlider" min="0" max="100" value="75">
+    </div>
+
+    <div class="control-group">
+        <label data-i18n="lbl_decay">Trail Decay</label>
+        <input type="range" id="decaySlider" min="0" max="99" value="80">
+    </div>
+
+    <div class="control-group">
+        <label data-i18n="lbl_color">Dot Color</label>
+        <input type="color" id="colorPicker" value="#111827">
+    </div>
+
+    <div class="control-group">
+        <label data-i18n="lbl_bgcolor">Bg Color</label>
+        <input type="color" id="bgColorPicker" value="#ffffff">
+    </div>
+
+    <div class="control-group">
+        <label data-i18n="lbl_synth">Synth</label>
+        <select id="synthSelect">
+            <option value="NEIGE">NEIGE (Sine)</option>
+            <option value="PLUIE">PLUIE (Pluck)</option>
+            <option value="ORAGE">ORAGE (Saw)</option>
+        </select>
+    </div>
+
+    <div class="control-group">
+        <label data-i18n="lbl_scale">Scale</label>
+        <select id="scaleSelect">
+            <option value="Cm">Cm</option>
+            <option value="Am">Am</option>
+            <option value="CMaj">C Major</option>
+            <option value="MinorPenta">Minor Penta</option>
+            <option value="MajorPenta">Major Penta</option>
+            <option value="Blues">Blues</option>
+            <option value="Dorian">Dorian</option>
+            <option value="Mixolydian">Mixolydian</option>
+        </select>
+    </div>
+</footer>
+
+<div class="credit">
+    <a href="https://litt.ly/chichiboo" target="_blank" data-i18n="credit">Created by. 교육뮤지컬 꿈꾸는 치수쌤</a>
+</div>
+
+<!-- Help Modal -->
+<div class="modal-bg" id="helpModal">
+    <div class="modal-content">
+        <button class="modal-close" id="closeHelpBtn"><span class="material-symbols-outlined">close</span></button>
+        <h2 data-i18n="help_title"><span class="material-symbols-outlined">info</span> 사용 방법</h2>
+        <ul class="help-list">
+            <li data-i18n="help_1"><strong>IMAGE:</strong> 이미지를 업로드한 후, 이미지 위 원하는 곳을 클릭하여 점(음표)을 찍으세요. 스캔 라인이 지나가며 연주됩니다.</li>
+            <li data-i18n="help_2"><strong>VIDEO / GIF:</strong> 동영상이나 GIF를 업로드하세요. 영상 속 움직임이 실시간으로 감지되어 즉석에서 음악이 만들어집니다.</li>
+            <li data-i18n="help_3"><strong>WEBCAM:</strong> 카메라 접근을 허용하세요. 카메라 앞에서의 내 몸짓과 움직임이 즉각적으로 픽셀 아트와 음악으로 변환됩니다.</li>
+            <li data-i18n="help_4"><strong>REC (녹화):</strong> REC 버튼을 누르면 원본 영상과 격자 애니메이션이 나란히 배치된 분할 화면 비디오가 소리와 함께 저장됩니다.</li>
+            <li data-i18n="help_5"><strong>NOTE (작곡 노트):</strong> 노트 아이콘을 클릭하여 캡쳐된 화면과 함께 음악에 대한 설명을 적고 보관해보세요.</li>
+        </ul>
+        <hr style="border: 0; border-top: 1px dashed #ddd; margin: 1.5rem 0 1rem;">
+        <p style="font-size: 0.8rem; color: #666; text-align: center; margin: 0; line-height: 1.5;" data-i18n="help_inspiration"></p>
+    </div>
+</div>
+
+<!-- Composition Note Modal -->
+<div class="modal-bg" id="noteModal">
+    <div class="modal-content">
+        <button class="modal-close" id="closeNoteBtn"><span class="material-symbols-outlined">close</span></button>
+        <h2 data-i18n="note_title"><span class="material-symbols-outlined">edit_document</span> 작곡 노트</h2>
+        <img id="notePreviewImg" class="preview-img" src="" alt="Capture Preview">
+        <div class="form-group">
+            <label data-i18n="lbl_composer">작곡가</label>
+            <input type="text" id="noteComposer" placeholder="이름을 입력하세요" autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label data-i18n="lbl_desc">설명</label>
+            <textarea id="noteDesc" placeholder="음악에 대한 설명을 적어주세요"></textarea>
+        </div>
+        <div class="modal-actions">
+            <button class="action-btn" id="noteCopyBtn">
+                <span class="material-symbols-outlined">content_copy</span>
+                <span data-i18n="btn_copy_text">텍스트 복사</span>
+            </button>
+            <button class="action-btn primary-btn" id="noteDownloadBtn">
+                <span class="material-symbols-outlined">download</span>
+                <span data-i18n="btn_download_img">이미지 다운로드</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Simple Capture Choice Modal -->
+<div class="modal-bg" id="captureModal">
+    <div class="modal-content" style="max-width: 400px;">
+        <button class="modal-close" id="closeCaptureBtn"><span class="material-symbols-outlined">close</span></button>
+        <h2 data-i18n="cap_title"><span class="material-symbols-outlined">photo_camera</span> 화면 캡쳐</h2>
+        <img id="capPreviewImg" class="preview-img" src="" alt="Capture Preview">
+        <p style="font-size: 0.85rem; color: #666; text-align: center; margin-bottom: 1.5rem;" data-i18n="cap_desc">캡쳐된 결과물을 선택해주세요.</p>
+        <div class="modal-actions" style="justify-content: center;">
+            <button class="action-btn" id="capCopyBtn">
+                <span class="material-symbols-outlined">content_copy</span>
+                <span data-i18n="btn_copy_img">이미지 복사</span>
+            </button>
+            <button class="action-btn primary-btn" id="capDownloadBtn">
+                <span class="material-symbols-outlined">download</span>
+                <span data-i18n="btn_download_img">이미지 다운로드</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+/**
+ * DotMusic Engine - Pro Edition + Note/Capture Features
+ */
+
+// --- Utils ---
+function hexToRgb(hex) {
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : {r: 17, g: 24, b: 39};
+}
+
+function getContrastYIQ(hexcolor){
+    hexcolor = hexcolor.replace("#", "");
+    var r = parseInt(hexcolor.substr(0,2),16);
+    var g = parseInt(hexcolor.substr(2,2),16);
+    var b = parseInt(hexcolor.substr(4,2),16);
+    var yiq = ((r*299)+(g*587)+(b*114))/1000;
+    return (yiq >= 128) ? 'dark' : 'light';
+}
+
+// --- i18n Translation ---
+const translations = {
+    ko: {
+        tab_image: "이미지", tab_video: "비디오 / GIF", tab_webcam: "웹캠",
+        upload_title: "미디어 업로드", upload_desc_img: "클릭하거나 드래그 앤 드롭 (이미지)", upload_desc_vid: "클릭하거나 드래그 앤 드롭 (비디오/GIF)",
+        cam_req: "카메라 접근 권한이 필요합니다.", cam_allow: "허용하고 시작",
+        inst_img: "이미지를 업로드하고 점을 찍어보세요.", inst_vid: "비디오의 움직임이 실시간으로 음악이 됩니다.", inst_cam: "카메라 앞에서의 움직임이 실시간으로 음악이 됩니다.",
+        btn_play: "재생", btn_pause: "일시정지", btn_clear: "초기화", btn_record: "녹화", btn_stop_rec: "저장중", btn_capture: "캡쳐",
+        lbl_dir: "재생 방향", lbl_sens: "감도", lbl_decay: "잔상 시간", lbl_synth: "신디사이저", lbl_scale: "음계",
+        lbl_speed: "속도", lbl_color: "점 색상", lbl_bgcolor: "배경 색상",
+        credit: "Created by. 교육뮤지컬 꿈꾸는 치수쌤", help_title: "사용 방법",
+        help_1: "<strong>IMAGE (이미지):</strong> 이미지를 업로드하고 클릭해 점을 찍어보세요. 스캔 라인이 지나가며 연주됩니다.",
+        help_2: "<strong>VIDEO (비디오):</strong> 동영상을 업로드하세요. 영상 속 움직임이 감지되어 실시간으로 음악이 만들어집니다.",
+        help_3: "<strong>WEBCAM (웹캠):</strong> 카메라를 허용하고 움직여보세요. 몸짓이 즉각적으로 음악으로 변환됩니다.",
+        help_4: "<strong>REC (녹화):</strong> 녹화 버튼을 누르면 원본과 애니메이션이 하나로 합쳐진 영상을 저장할 수 있습니다.",
+        help_5: "<strong>NOTE (작곡 노트):</strong> 노트 아이콘을 클릭하여 캡쳐된 화면과 함께 음악에 대한 설명을 적고 보관해보세요.",
+        help_inspiration: "💡 'Dot Music'은 인스타그램 크리에이터<br><a href='https://instagram.com/nsmrnoak' target='_blank' style='color:#000; font-weight:bold;'>@nsmrnoak</a> & <a href='https://instagram.com/lolalevient' target='_blank' style='color:#000; font-weight:bold;'>@lolalevient</a> 의 영상에서 영감을 받아 제작하였습니다.",
+        note_title: "작곡 노트", lbl_composer: "작곡가", lbl_desc: "설명", btn_copy_text: "텍스트 복사", btn_download_img: "이미지 다운로드", btn_copy_img: "이미지 복사",
+        cap_title: "화면 캡쳐", cap_desc: "원하는 작업 방식을 선택해주세요.", msg_copied_txt: "텍스트가 클립보드에 복사되었습니다.", msg_copied_img: "이미지가 클립보드에 복사되었습니다.", msg_copy_err: "복사를 지원하지 않는 브라우저 환경입니다."
+    },
+    en: {
+        tab_image: "IMAGE", tab_video: "VIDEO / GIF", tab_webcam: "WEBCAM",
+        upload_title: "Upload Media", upload_desc_img: "Click or drag & drop (Image)", upload_desc_vid: "Click or drag & drop (Video/GIF)",
+        cam_req: "Camera access required", cam_allow: "Allow & Play",
+        inst_img: "Upload an image and click to add musical dots.", inst_vid: "Video motion becomes music in real-time.", inst_cam: "Your movement becomes music in real-time.",
+        btn_play: "PLAY", btn_pause: "PAUSE", btn_clear: "CLEAR", btn_record: "REC", btn_stop_rec: "STOP", btn_capture: "CAPTURE",
+        lbl_dir: "Direction", lbl_sens: "Sensitivity", lbl_decay: "Trail Decay", lbl_synth: "Synth", lbl_scale: "Scale",
+        lbl_speed: "Speed", lbl_color: "Dot Color", lbl_bgcolor: "Bg Color",
+        credit: "Created by. 교육뮤지컬 꿈꾸는 치수쌤", help_title: "How to use",
+        help_1: "<strong>IMAGE:</strong> Upload an image and click to add dots (notes). A scanline will play them.",
+        help_2: "<strong>VIDEO:</strong> Upload a video or GIF. The motion is detected and turned into music in real-time.",
+        help_3: "<strong>WEBCAM:</strong> Allow camera access. Your movements are instantly translated into music.",
+        help_4: "<strong>REC (Record):</strong> Record a side-by-side video of your original media and the visualizer.",
+        help_5: "<strong>NOTE (Composition Note):</strong> Click the note icon to add a description to your captured screen and save it.",
+        help_inspiration: "💡 'Dot Music' is inspired by the videos of Instagram creators<br><a href='https://instagram.com/nsmrnoak' target='_blank' style='color:#000; font-weight:bold;'>@nsmrnoak</a> & <a href='https://instagram.com/lolalevient' target='_blank' style='color:#000; font-weight:bold;'>@lolalevient</a>.",
+        note_title: "Composition Note", lbl_composer: "Composer", lbl_desc: "Description", btn_copy_text: "Copy Text", btn_download_img: "Download Image", btn_copy_img: "Copy Image",
+        cap_title: "Screen Capture", cap_desc: "Choose an action for your capture.", msg_copied_txt: "Text copied to clipboard!", msg_copied_img: "Image copied to clipboard!", msg_copy_err: "Clipboard copy is not supported in this browser."
+    }
+};
+
+let currentLang = 'ko';
+
+function applyTranslations() {
+    const t = translations[currentLang];
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) el.innerHTML = t[key];
+    });
+    
+    const instruction = document.getElementById('instructionText');
+    if(state.mode === 'IMAGE') instruction.innerHTML = t.inst_img;
+    else if(state.mode === 'VIDEO') instruction.innerHTML = t.inst_vid;
+    else if(state.mode === 'WEBCAM') instruction.innerHTML = t.inst_cam;
+
+    document.getElementById('playText').innerText = state.isPlaying ? t.btn_pause : t.btn_play;
+    if(!state.isRecording) document.getElementById('recText').innerText = t.btn_record;
+    
+    const uploadDesc = document.getElementById('uploadDesc');
+    if (state.mode === 'IMAGE') uploadDesc.innerText = t.upload_desc_img;
+    else if (state.mode === 'VIDEO') uploadDesc.innerText = t.upload_desc_vid;
+
+    document.getElementById('noteComposer').placeholder = (currentLang==='ko')?"이름을 입력하세요":"Enter name";
+    document.getElementById('noteDesc').placeholder = (currentLang==='ko')?"음악에 대한 설명을 적어주세요":"Describe your music";
+}
+
+document.getElementById('langToggleBtn').addEventListener('click', () => {
+    currentLang = currentLang === 'ko' ? 'en' : 'ko';
+    document.getElementById('langText').innerText = currentLang === 'ko' ? 'EN' : 'KR';
+    applyTranslations();
+});
+
+// Modals
+const helpModal = document.getElementById('helpModal');
+document.getElementById('helpToggleBtn').addEventListener('click', () => helpModal.classList.add('active'));
+document.getElementById('closeHelpBtn').addEventListener('click', () => helpModal.classList.remove('active'));
+
+const noteModal = document.getElementById('noteModal');
+document.getElementById('closeNoteBtn').addEventListener('click', () => noteModal.classList.remove('active'));
+
+const captureModal = document.getElementById('captureModal');
+document.getElementById('closeCaptureBtn').addEventListener('click', () => captureModal.classList.remove('active'));
+
+[helpModal, noteModal, captureModal].forEach(modal => {
+    modal.addEventListener('click', (e) => { if(e.target === modal) modal.classList.remove('active'); });
+});
+
+// --- Engine Constants & State ---
+const MIN_FREQ = 130.81; 
+const SCALES = {
+    'Cm': [0, 2, 3, 5, 7, 8, 10], 'Am': [0, 2, 3, 5, 7, 8, 10], 'CMaj': [0, 2, 4, 5, 7, 9, 11],
+    'MinorPenta': [0, 3, 5, 7, 10], 'MajorPenta': [0, 2, 4, 7, 9], 'Blues': [0, 3, 5, 6, 7, 10],
+    'Dorian': [0, 2, 3, 5, 7, 9, 10], 'Mixolydian': [0, 2, 4, 5, 7, 9, 10]
+};
+
+const state = {
+    mode: 'IMAGE', isPlaying: false, isRecording: false, bpm: 120, sensitivity: 75, decay: 0.8,
+    synth: 'ORAGE', scale: 'Cm', scanDir: 'L2R', dotColor: '#111827', bgColor: '#ffffff',
+    cols: 24, rows: 24, grid: [], imageDots: [], currentStep: -1, lastStepTime: 0,
+};
+
+document.getElementById('synthSelect').value = state.synth;
+document.getElementById('sensitivitySlider').value = state.sensitivity;
+document.getElementById('speedSlider').value = state.bpm;
+document.getElementById('colorPicker').value = state.dotColor;
+document.getElementById('bgColorPicker').value = state.bgColor;
+document.getElementById('decaySlider').value = state.decay * 100;
+
+// --- Web Audio API ---
+class AudioEngine {
+    constructor() {
+        this.ctx = null; this.reverbNode = null; this.masterGain = null;
+        this.streamDest = null; this.isInitialized = false;
+    }
+    async init() {
+        if (this.isInitialized) return;
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.gain.value = 0.3;
+        this.masterGain.connect(this.ctx.destination);
+        this.streamDest = this.ctx.createMediaStreamDestination();
+        this.masterGain.connect(this.streamDest);
+
+        this.reverbNode = this.ctx.createConvolver();
+        const irLength = this.ctx.sampleRate * 2.5;
+        const irBuffer = this.ctx.createBuffer(2, irLength, this.ctx.sampleRate);
+        for (let c = 0; c < 2; c++) {
+            const channel = irBuffer.getChannelData(c);
+            for (let i = 0; i < irLength; i++) channel[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.4));
+        }
+        this.reverbNode.buffer = irBuffer;
+        
+        const effectMix = this.ctx.createGain();
+        effectMix.gain.value = 0.4;
+        this.reverbNode.connect(effectMix);
+        effectMix.connect(this.masterGain);
+
+        this.isInitialized = true;
+    }
+    getFrequency(row) {
+        const invertedRow = state.rows - 1 - row; 
+        const scalePattern = SCALES[state.scale];
+        let rootOffset = 0;
+        if (state.scale === 'Am') rootOffset = -3;
+        const octaveIndex = Math.floor(invertedRow / scalePattern.length);
+        const noteIndex = invertedRow % scalePattern.length;
+        const semitones = (octaveIndex * 12) + scalePattern[noteIndex] + rootOffset;
+        return MIN_FREQ * Math.pow(2, semitones / 12);
+    }
+    playNote(row, velocity = 1) {
+        if (!this.isInitialized || this.ctx.state !== 'running') return;
+        const t = this.ctx.currentTime;
+        const freq = this.getFrequency(row);
+        const osc = this.ctx.createOscillator();
+        const env = this.ctx.createGain();
+        env.connect(this.masterGain); env.connect(this.reverbNode);
+
+        if (state.synth === 'NEIGE') {
+            osc.type = 'sine'; env.gain.setValueAtTime(0, t);
+            env.gain.linearRampToValueAtTime(0.3 * velocity, t + 0.05); env.gain.exponentialRampToValueAtTime(0.01, t + 1.2);
+            osc.frequency.value = freq;
+        } else if (state.synth === 'PLUIE') {
+            osc.type = 'triangle'; env.gain.setValueAtTime(0, t);
+            env.gain.linearRampToValueAtTime(0.5 * velocity, t + 0.01); env.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
+            osc.frequency.value = freq * 2; 
+        } else {
+            osc.type = 'sawtooth';
+            const filter = this.ctx.createBiquadFilter(); filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(400, t); filter.frequency.exponentialRampToValueAtTime(2500, t + 0.1); filter.frequency.exponentialRampToValueAtTime(100, t + 0.8);
+            env.gain.setValueAtTime(0, t); env.gain.linearRampToValueAtTime(0.15 * velocity, t + 0.05); env.gain.exponentialRampToValueAtTime(0.01, t + 0.8);
+            osc.connect(filter); filter.connect(env); osc.frequency.value = freq / 2;
+        }
+        if(state.synth !== 'ORAGE') osc.connect(env);
+        osc.start(t); osc.stop(t + 1.5);
+    }
+    resume() { if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); }
+}
+const audio = new AudioEngine();
+
+// --- Visual Engine & Dynamic Grid ---
+const UI = {
+    gridCanvas: document.getElementById('gridCanvas'), gridCtx: document.getElementById('gridCanvas').getContext('2d'),
+    srcCanvas: document.getElementById('sourceCanvas'), srcCtx: document.getElementById('sourceCanvas').getContext('2d'),
+    video: document.getElementById('videoSource'),
+    diffCanvas: document.createElement('canvas'), recordCanvas: document.createElement('canvas'),
+    uploadedImage: null, stream: null, prevImgData: null
+};
+const diffCtx = UI.diffCanvas.getContext('2d', { willReadFrequently: true });
+const recCtx = UI.recordCanvas.getContext('2d');
+UI.recordCanvas.width = 1280; UI.recordCanvas.height = 640;
+
+function initGrid(aspectRatio) {
+    state.rows = Math.floor(state.cols / aspectRatio);
+    if(state.rows < 1) state.rows = 1;
+    state.grid = Array(state.cols).fill().map(() => Array(state.rows).fill(0));
+    state.imageDots = []; state.currentStep = -1;
+    UI.diffCanvas.width = state.cols; UI.diffCanvas.height = state.rows; UI.prevImgData = null;
+
+    let w = 640, h = 640;
+    if (UI.uploadedImage && state.mode === 'IMAGE') { w = UI.uploadedImage.width; h = UI.uploadedImage.height; } 
+    else if ((state.mode === 'VIDEO' || state.mode === 'WEBCAM') && UI.video.videoWidth) { w = UI.video.videoWidth; h = UI.video.videoHeight; }
+    
+    UI.srcCanvas.width = w; UI.srcCanvas.height = h;
+    UI.gridCanvas.width = state.cols * 20; UI.gridCanvas.height = state.rows * 20;
+    drawSourceImage();
+}
+initGrid(1); 
+
+function drawSourceImage() {
+    if (state.mode !== 'IMAGE') return;
+    const ctx = UI.srcCtx;
+    ctx.clearRect(0, 0, UI.srcCanvas.width, UI.srcCanvas.height);
+    if (UI.uploadedImage) {
+        ctx.drawImage(UI.uploadedImage, 0, 0, UI.srcCanvas.width, UI.srcCanvas.height);
+        const rgb = hexToRgb(state.dotColor);
+        ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 1.0)`;
+        state.imageDots.forEach(dot => {
+            ctx.beginPath(); ctx.arc(dot.x * UI.srcCanvas.width, dot.y * UI.srcCanvas.height, 8, 0, Math.PI*2); ctx.fill();
+        });
+    } else {
+        ctx.fillStyle = '#f3f4f6'; ctx.fillRect(0, 0, UI.srcCanvas.width, UI.srcCanvas.height);
+    }
+}
+
+function handleImageInteraction(e) {
+    if (state.mode !== 'IMAGE' || !UI.uploadedImage) return;
+    const rect = UI.srcCanvas.getBoundingClientRect();
+    let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const rx = (clientX - rect.left) / rect.width; const ry = (clientY - rect.top) / rect.height;
+    if (rx >= 0 && rx <= 1 && ry >= 0 && ry <= 1) { state.imageDots.push({ x: rx, y: ry }); drawSourceImage(); }
+}
+UI.srcCanvas.addEventListener('mousedown', handleImageInteraction);
+UI.srcCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleImageInteraction(e); }, {passive: false});
+
+function processVideoFrame() {
+    if ((state.mode !== 'VIDEO' && state.mode !== 'WEBCAM') || !state.isPlaying || UI.video.readyState < 2) return;
+    diffCtx.save();
+    if (state.mode === 'WEBCAM') { diffCtx.translate(state.cols, 0); diffCtx.scale(-1, 1); }
+    diffCtx.drawImage(UI.video, 0, 0, state.cols, state.rows); diffCtx.restore();
+
+    const currentImgData = diffCtx.getImageData(0, 0, state.cols, state.rows);
+    const data = currentImgData.data;
+    let activeNotes = [];
+
+    if (UI.prevImgData) {
+        const prevData = UI.prevImgData.data;
+        const th = 105 - state.sensitivity; 
+        for (let y = 0; y < state.rows; y++) {
+            for (let x = 0; x < state.cols; x++) {
+                const i = (y * state.cols + x) * 4;
+                const diff = (Math.abs(data[i]-prevData[i]) + Math.abs(data[i+1]-prevData[i+1]) + Math.abs(data[i+2]-prevData[i+2])) / 3;
+                if (diff > th) { state.grid[x][y] = 1.0; activeNotes.push({y, diff}); }
+            }
+        }
+    }
+    UI.prevImgData = new ImageData(new Uint8ClampedArray(data), state.cols, state.rows);
+
+    if (activeNotes.length > 0) {
+        activeNotes.sort((a,b) => b.diff - a.diff);
+        activeNotes.slice(0, 3).forEach(n => audio.playNote(n.y, n.diff / 255));
+    }
+}
+
+function drawGrid() {
+    const ctx = UI.gridCtx; const cellSize = UI.gridCanvas.width / state.cols;
+    ctx.fillStyle = state.bgColor; ctx.fillRect(0, 0, UI.gridCanvas.width, UI.gridCanvas.height);
+    const decayRate = 0.15 * Math.pow(1.0 - state.decay, 2) + 0.005; 
+    
+    const hasDot = Array(state.cols).fill().map(() => Array(state.rows).fill(false));
+    if (state.mode === 'IMAGE') {
+        state.imageDots.forEach(dot => {
+            const c = Math.floor(dot.x * state.cols); const r = Math.floor(dot.y * state.rows);
+            if (c >= 0 && c < state.cols && r >= 0 && r < state.rows) hasDot[c][r] = true;
+        });
+    }
+
+    const rgb = hexToRgb(state.dotColor);
+    for (let x = 0; x < state.cols; x++) {
+        for (let y = 0; y < state.rows; y++) {
+            if (state.isPlaying) state.grid[x][y] -= decayRate;
+            const minOpacity = (state.mode === 'IMAGE' && hasDot[x][y]) ? 0.25 : 0.0;
+            if (state.grid[x][y] < minOpacity) state.grid[x][y] = minOpacity;
+            if (state.grid[x][y] > 1.0) state.grid[x][y] = 1.0;
+            if (state.grid[x][y] > 0) {
+                ctx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${state.grid[x][y]})`;
+                ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+            }
+        }
+    }
+
+    const theme = getContrastYIQ(state.bgColor);
+    ctx.strokeStyle = theme === 'dark' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)'; 
+    ctx.lineWidth = 0.5; ctx.beginPath();
+    for (let x = 0; x <= state.cols; x++) { ctx.moveTo(x * cellSize, 0); ctx.lineTo(x * cellSize, UI.gridCanvas.height); }
+    for (let y = 0; y <= state.rows; y++) { ctx.moveTo(0, y * cellSize); ctx.lineTo(UI.gridCanvas.width, y * cellSize); }
+    ctx.stroke();
+    
+    if (state.isPlaying && state.mode === 'IMAGE' && state.currentStep >= 0) {
+        ctx.fillStyle = theme === 'dark' ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.2)'; 
+        const step = state.currentStep;
+        if (state.scanDir === 'L2R') ctx.fillRect(step * cellSize, 0, cellSize, UI.gridCanvas.height);
+        else if (state.scanDir === 'R2L') ctx.fillRect((state.cols - 1 - step) * cellSize, 0, cellSize, UI.gridCanvas.height);
+        else if (state.scanDir === 'T2B') ctx.fillRect(0, step * cellSize, UI.gridCanvas.width, cellSize);
+        else if (state.scanDir === 'B2T') ctx.fillRect(0, (state.rows - 1 - step) * cellSize, UI.gridCanvas.width, cellSize);
+        else if (state.scanDir === 'TL2BR') {
+            for(let x=0; x<state.cols; x++) for(let y=0; y<state.rows; y++) if(x+y === step) ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+        }
+    }
+}
+
+function runSequencer(time) {
+    if (!state.isPlaying || state.mode !== 'IMAGE') return;
+    const stepDuration = (60000 / state.bpm) / 4; 
+    if (time - state.lastStepTime > stepDuration) {
+        state.lastStepTime = time;
+        let maxSteps = state.cols;
+        if (state.scanDir === 'T2B' || state.scanDir === 'B2T') maxSteps = state.rows;
+        else if (state.scanDir === 'TL2BR') maxSteps = state.cols + state.rows - 1;
+        state.currentStep = (state.currentStep + 1) % maxSteps;
+        const step = state.currentStep;
+        
+        const hasDot = Array(state.cols).fill().map(() => Array(state.rows).fill(false));
+        state.imageDots.forEach(dot => {
+            const c = Math.floor(dot.x * state.cols); const r = Math.floor(dot.y * state.rows);
+            if (c >= 0 && c < state.cols && r >= 0 && r < state.rows) hasDot[c][r] = true;
+        });
+
+        for (let x = 0; x < state.cols; x++) {
+            for (let y = 0; y < state.rows; y++) {
+                let isActive = false;
+                if (state.scanDir === 'L2R' && x === step) isActive = true;
+                else if (state.scanDir === 'R2L' && x === (state.cols - 1 - step)) isActive = true;
+                else if (state.scanDir === 'T2B' && y === step) isActive = true;
+                else if (state.scanDir === 'B2T' && y === (state.rows - 1 - step)) isActive = true;
+                else if (state.scanDir === 'TL2BR' && (x + y) === step) isActive = true;
+
+                if (isActive && hasDot[x][y]) { 
+                    audio.playNote(y, 1.0);
+                    state.grid[x][y] = 1.0; 
+                }
+            }
+        }
+    }
+}
+
+// --- Core Drawing and Capture Helper ---
+function drawToRecordCanvas(src, x, y, w, h, mirror=false) {
+    let sw = src.width || src.videoWidth; let sh = src.height || src.videoHeight;
+    if(!sw || !sh) return;
+    const scale = Math.min(w/sw, h/sh);
+    const dw = sw * scale; const dh = sh * scale;
+    const dx = x + (w - dw)/2; const dy = y + (h - dh)/2;
+    recCtx.save();
+    if (mirror) { recCtx.translate(x + w, 0); recCtx.scale(-1, 1); recCtx.drawImage(src, (w - dw)/2, dy, dw, dh); } 
+    else { recCtx.drawImage(src, dx, dy, dw, dh); }
+    recCtx.restore();
+}
+
+function drawGridForCapture(offsetX, offsetY, width, height) {
+    // 캡쳐를 위해 우측 점들을 강제로 100% 진하게 그리는 특수 함수
+    const tempGridCanvas = document.createElement('canvas');
+    tempGridCanvas.width = UI.gridCanvas.width;
+    tempGridCanvas.height = UI.gridCanvas.height;
+    const tempCtx = tempGridCanvas.getContext('2d');
+    
+    const cellSize = tempGridCanvas.width / state.cols;
+    tempCtx.fillStyle = state.bgColor;
+    tempCtx.fillRect(0, 0, tempGridCanvas.width, tempGridCanvas.height);
+    
+    const rgb = hexToRgb(state.dotColor);
+    const hasDot = Array(state.cols).fill().map(() => Array(state.rows).fill(false));
+    if (state.mode === 'IMAGE') {
+        state.imageDots.forEach(dot => {
+            const c = Math.floor(dot.x * state.cols); const r = Math.floor(dot.y * state.rows);
+            if (c >= 0 && c < state.cols && r >= 0 && r < state.rows) hasDot[c][r] = true;
+        });
+    }
+
+    for (let x = 0; x < state.cols; x++) {
+        for (let y = 0; y < state.rows; y++) {
+            // 현재 잔상이 남아있거나, 기본 점이 있는 셀이면 투명도 100%로 강제 출력
+            if (hasDot[x][y] || state.grid[x][y] > 0) {
+                tempCtx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 1.0)`;
+                tempCtx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+            }
+        }
+    }
+
+    const theme = getContrastYIQ(state.bgColor);
+    tempCtx.strokeStyle = theme === 'dark' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)'; 
+    tempCtx.lineWidth = 0.5; tempCtx.beginPath();
+    for (let x = 0; x <= state.cols; x++) { tempCtx.moveTo(x * cellSize, 0); tempCtx.lineTo(x * cellSize, tempGridCanvas.height); }
+    for (let y = 0; y <= state.rows; y++) { tempCtx.moveTo(0, y * cellSize); tempCtx.lineTo(tempGridCanvas.width, y * cellSize); }
+    tempCtx.stroke();
+
+    drawToRecordCanvas(tempGridCanvas, offsetX, offsetY, width, height, false);
+}
+
+function generateCaptureImageData() {
+    recCtx.fillStyle = '#f9fafb';
+    recCtx.fillRect(0, 0, 1280, 640);
+    const leftSource = (state.mode === 'IMAGE') ? UI.srcCanvas : UI.video;
+    const isMirror = (state.mode === 'WEBCAM');
+    drawToRecordCanvas(leftSource, 0, 0, 640, 640, isMirror);
+    
+    // 일반 drawToRecordCanvas(UI.gridCanvas) 대신 100% 진한 강제 렌더링 호출
+    drawGridForCapture(640, 0, 640, 640);
+    
+    return UI.recordCanvas.toDataURL('image/jpeg', 0.95);
+}
+
+function mainLoop(time) {
+    if (state.isPlaying) {
+        if (state.mode === 'VIDEO' || state.mode === 'WEBCAM') processVideoFrame();
+        else if (state.mode === 'IMAGE') runSequencer(time);
+    }
+    drawGrid();
+
+    // 동영상 녹화(REC) 중일 때는 애니메이션이 그대로 녹화되도록 일반 그리드를 사용
+    if (state.isRecording) { 
+        recCtx.fillStyle = '#f9fafb';
+        recCtx.fillRect(0, 0, 1280, 640);
+        const leftSource = (state.mode === 'IMAGE') ? UI.srcCanvas : UI.video;
+        const isMirror = (state.mode === 'WEBCAM');
+        drawToRecordCanvas(leftSource, 0, 0, 640, 640, isMirror);
+        drawToRecordCanvas(UI.gridCanvas, 640, 0, 640, 640, false);
+    }
+
+    requestAnimationFrame(mainLoop);
+}
+
+// --- Note & Capture Logic ---
+document.getElementById('noteToggleBtn').addEventListener('click', () => {
+    const imgData = generateCaptureImageData();
+    document.getElementById('notePreviewImg').src = imgData;
+    noteModal.classList.add('active');
+});
+
+document.getElementById('captureBtn').addEventListener('click', () => {
+    const imgData = generateCaptureImageData();
+    document.getElementById('capPreviewImg').src = imgData;
+    captureModal.classList.add('active');
+});
+
+// Copy Text (Note)
+document.getElementById('noteCopyBtn').addEventListener('click', () => {
+    const composer = document.getElementById('noteComposer').value || "Unknown";
+    const desc = document.getElementById('noteDesc').value || "";
+    const text = `작곡가(Composer): ${composer}\n설명(Description):\n${desc}`;
+    
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert(translations[currentLang].msg_copied_txt);
+        });
+    } else {
+        const ta = document.createElement("textarea");
+        ta.value = text; document.body.appendChild(ta);
+        ta.select(); document.execCommand("copy"); document.body.removeChild(ta);
+        alert(translations[currentLang].msg_copied_txt);
+    }
+});
+
+// Helper for multiline canvas text
+function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+    const lines = text.split('\n');
+    let currentY = y;
+    for (let i = 0; i < lines.length; i++) {
+        let line = '';
+        let chars = lines[i].split('');
+        for(let n = 0; n < chars.length; n++) {
+            let testLine = line + chars[n];
+            let metrics = ctx.measureText(testLine);
+            if (metrics.width > maxWidth && n > 0) {
+                ctx.fillText(line, x, currentY);
+                line = chars[n];
+                currentY += lineHeight;
+            } else { line = testLine; }
+        }
+        ctx.fillText(line, x, currentY);
+        currentY += lineHeight;
+    }
+}
+
+// Download Combined Image (Note)
+document.getElementById('noteDownloadBtn').addEventListener('click', () => {
+    const composer = document.getElementById('noteComposer').value || "Unknown";
+    const desc = document.getElementById('noteDesc').value || "";
+    
+    // 100% 진해진 캡쳐 상태 데이터 다시 불러오기
+    generateCaptureImageData();
+
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = 1280; finalCanvas.height = 640 + 220;
+    const fCtx = finalCanvas.getContext('2d');
+    
+    fCtx.fillStyle = '#ffffff';
+    fCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+    fCtx.drawImage(UI.recordCanvas, 0, 0); 
+    
+    fCtx.fillStyle = '#000000';
+    fCtx.font = 'bold 32px Pretendard GOV, sans-serif';
+    fCtx.fillText(`Composer: ${composer}`, 50, 640 + 60);
+    
+    fCtx.font = '24px Pretendard GOV, sans-serif';
+    fCtx.fillStyle = '#4b5563';
+    wrapText(fCtx, desc, 50, 640 + 110, 1180, 34);
+    
+    const a = document.createElement('a');
+    a.href = finalCanvas.toDataURL('image/jpeg', 0.95);
+    a.download = 'DotMusic_CompositionNote.jpg';
+    a.click();
+});
+
+// Copy Image (Capture)
+document.getElementById('capCopyBtn').addEventListener('click', () => {
+    try {
+        generateCaptureImageData();
+        UI.recordCanvas.toBlob(blob => {
+            if (navigator.clipboard && navigator.clipboard.write) {
+                navigator.clipboard.write([new ClipboardItem({'image/png': blob})])
+                .then(() => alert(translations[currentLang].msg_copied_img))
+                .catch(err => alert(translations[currentLang].msg_copy_err + " (" + err + ")"));
+            } else {
+                alert(translations[currentLang].msg_copy_err);
+            }
+        }, 'image/png');
+    } catch (e) { alert(translations[currentLang].msg_copy_err); }
+});
+
+// Download Image (Capture)
+document.getElementById('capDownloadBtn').addEventListener('click', () => {
+    const imgData = generateCaptureImageData();
+    const a = document.createElement('a');
+    a.href = imgData;
+    a.download = 'DotMusic_Capture.jpg';
+    a.click();
+});
+
+// --- Recording Control ---
+let mediaRecorder = null;
+let recordedChunks = [];
+const recordBtn = document.getElementById('recordBtn');
+
+recordBtn.addEventListener('click', async () => {
+    if (state.isRecording) stopRecording(); else await startRecording();
+});
+
+async function startRecording() {
+    await audio.init();
+    if(audio.ctx.state === 'suspended') audio.ctx.resume();
+    
+    recordedChunks = [];
+    const canvasStream = UI.recordCanvas.captureStream(30);
+    const audioStream = audio.streamDest.stream;
+    const tracks = [...canvasStream.getVideoTracks(), ...audioStream.getAudioTracks()];
+    const combinedStream = new MediaStream(tracks);
+
+    try { mediaRecorder = new MediaRecorder(combinedStream, { mimeType: 'video/webm;codecs=vp8,opus' }); } 
+    catch(e) { mediaRecorder = new MediaRecorder(combinedStream); }
+    
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+    mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'DotMusic_Performance.webm'; a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    mediaRecorder.start(); state.isRecording = true;
+    const t = translations[currentLang];
+    document.getElementById('recIcon').innerText = 'stop_circle';
+    document.getElementById('recText').innerText = t.btn_stop_rec || 'STOP';
+    recordBtn.classList.add('recording');
+}
+
+function stopRecording() {
+    if(mediaRecorder && state.isRecording) {
+        mediaRecorder.stop(); state.isRecording = false;
+        const t = translations[currentLang];
+        document.getElementById('recIcon').innerText = 'radio_button_checked';
+        document.getElementById('recText').innerText = t.btn_record;
+        recordBtn.classList.remove('recording');
+    }
+}
+
+// --- UI Logic & Events ---
+function updateMeta() {
+    document.getElementById('metaMode').innerText = state.mode;
+    document.getElementById('metaSynth').innerText = state.synth;
+    document.getElementById('metaGamme').innerText = state.scale;
+    applyTranslations();
+}
+
+document.getElementById('scanDirSelect').addEventListener('change', e => { state.scanDir = e.target.value; });
+document.getElementById('speedSlider').addEventListener('input', e => { state.bpm = parseInt(e.target.value); });
+document.getElementById('sensitivitySlider').addEventListener('input', e => { state.sensitivity = parseInt(e.target.value); });
+document.getElementById('decaySlider').addEventListener('input', e => { state.decay = parseInt(e.target.value) / 100; });
+document.getElementById('colorPicker').addEventListener('input', e => { state.dotColor = e.target.value; drawSourceImage(); });
+document.getElementById('bgColorPicker').addEventListener('input', e => { state.bgColor = e.target.value; });
+document.getElementById('synthSelect').addEventListener('change', e => { state.synth = e.target.value; updateMeta(); });
+document.getElementById('scaleSelect').addEventListener('change', e => { state.scale = e.target.value; updateMeta(); });
+
+const playBtn = document.getElementById('playBtn');
+playBtn.addEventListener('click', async () => {
+    await audio.init(); audio.resume();
+    state.isPlaying = !state.isPlaying;
+    const t = translations[currentLang];
+    document.getElementById('playText').innerText = state.isPlaying ? t.btn_pause : t.btn_play;
+    document.getElementById('playIcon').innerText = state.isPlaying ? 'pause' : 'play_arrow';
+    
+    state.currentStep = -1; 
+    if (state.mode === 'VIDEO') { if (state.isPlaying) UI.video.play(); else UI.video.pause(); }
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+    state.isPlaying = false; if(state.isRecording) stopRecording();
+    const t = translations[currentLang];
+    document.getElementById('playText').innerText = t.btn_play;
+    document.getElementById('playIcon').innerText = 'play_arrow';
+    if(audio.ctx && audio.ctx.state === 'running') audio.ctx.suspend();
+    
+    UI.uploadedImage = null; UI.video.src = ""; document.getElementById('fileInput').value = ""; 
+    
+    if (state.mode === 'IMAGE') {
+        document.getElementById('uploadOverlay').classList.add('active');
+        UI.srcCanvas.style.display = 'block'; UI.video.style.display = 'none';
+    } else if (state.mode === 'VIDEO') {
+        document.getElementById('uploadOverlay').classList.add('active');
+        UI.srcCanvas.style.display = 'none'; UI.video.style.display = 'none';
+    }
+    initGrid(1); 
+});
+
+// Mode Tabs
+document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); tab.classList.add('active');
+        state.mode = tab.dataset.mode; state.isPlaying = false;
+        if(state.isRecording) stopRecording();
+        
+        const t = translations[currentLang];
+        document.getElementById('playText').innerText = t.btn_play;
+        document.getElementById('playIcon').innerText = 'play_arrow';
+
+        if (UI.stream && state.mode !== 'WEBCAM') { UI.stream.getTracks().forEach(track => track.stop()); UI.stream = null; UI.video.srcObject = null; }
+        
+        const uploadOverlay = document.getElementById('uploadOverlay');
+        const camOverlay = document.getElementById('camOverlay');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadOverlay.classList.remove('active'); camOverlay.classList.remove('active');
+        UI.video.style.display = 'none'; UI.srcCanvas.style.display = 'none';
+        document.getElementById('thresholdGroup').style.display = 'none'; document.getElementById('scanDirGroup').style.display = 'none';
+
+        if (state.mode === 'IMAGE') {
+            uploadOverlay.classList.add('active'); fileInput.accept = "image/*"; UI.srcCanvas.style.display = 'block';
+            document.getElementById('scanDirGroup').style.display = 'flex';
+            if(UI.uploadedImage) { uploadOverlay.classList.remove('active'); initGrid(UI.uploadedImage.width / UI.uploadedImage.height); } else { initGrid(1); }
+        } else if (state.mode === 'VIDEO') {
+            uploadOverlay.classList.add('active'); fileInput.accept = "video/mp4,video/webm,image/gif"; document.getElementById('thresholdGroup').style.display = 'flex';
+            if(UI.video.src && UI.video.src.indexOf('blob:') === 0) { uploadOverlay.classList.remove('active'); UI.video.style.display = 'block'; initGrid(UI.video.videoWidth / UI.video.videoHeight || 1); } else { initGrid(1); }
+        } else if (state.mode === 'WEBCAM') {
+            camOverlay.classList.add('active'); UI.video.style.display = 'block'; UI.video.style.transform = 'scaleX(-1)'; 
+            document.getElementById('thresholdGroup').style.display = 'flex'; initGrid(4/3); 
+        }
+        updateMeta();
+    });
+});
+
+document.getElementById('startCamBtn').addEventListener('click', async () => {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        UI.stream = stream; UI.video.srcObject = stream; document.getElementById('camOverlay').classList.remove('active');
+        UI.video.onloadedmetadata = async () => {
+            initGrid(UI.video.videoWidth / UI.video.videoHeight); UI.video.play();
+            await audio.init(); audio.resume(); state.isPlaying = true;
+            const t = translations[currentLang];
+            document.getElementById('playText').innerText = t.btn_pause; document.getElementById('playIcon').innerText = 'pause';
+        };
+    } catch (e) { alert("Camera access required / 카메라 접근 권한이 필요합니다."); }
+});
+
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.borderColor = '#000'; });
+dropZone.addEventListener('dragleave', () => dropZone.style.borderColor = '#9ca3af');
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.style.borderColor = '#9ca3af'; if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change', e => { if (e.target.files.length) handleFile(e.target.files[0]); });
+
+function handleFile(file) {
+    const url = URL.createObjectURL(file); document.getElementById('uploadOverlay').classList.remove('active');
+    if (state.mode === 'IMAGE' && file.type.startsWith('image/')) {
+        const img = new Image(); img.onload = () => { UI.uploadedImage = img; initGrid(img.width / img.height); }; img.src = url;
+    } else if (state.mode === 'VIDEO' && file.type.startsWith('video/')) {
+        UI.video.src = url; UI.video.style.display = 'block'; UI.video.style.transform = 'none'; 
+        UI.video.onloadedmetadata = () => { initGrid(UI.video.videoWidth / UI.video.videoHeight); };
+        UI.video.oncanplay = async () => {
+            await audio.init(); audio.resume(); state.isPlaying = true;
+            const t = translations[currentLang]; document.getElementById('playText').innerText = t.btn_pause; document.getElementById('playIcon').innerText = 'pause'; UI.video.play();
+        };
+    } else {
+        alert("Please upload correct file format / 올바른 파일 형식을 업로드해주세요."); document.getElementById('uploadOverlay').classList.add('active');
+    }
+}
+
+applyTranslations();
+requestAnimationFrame(mainLoop);
+
+</script>
+</body>
+</html>
